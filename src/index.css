@@ -1,6 +1,7 @@
 body {
     font: 14px "Century Gothic", Futura, sans-serif;
     margin: 20px;
+    background-color: aliceblue;
 }
 
 ol, ul {
@@ -13,4 +14,11 @@ ol, ul {
 
 .text-center {
     text-align: center;
+}
+.text-right {
+    text-align: right;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
 }

@@ -67,7 +67,7 @@ const Signup = () => {
         }
 
         localStorage.setItem(inputs.id, inputs.pw);
-        localStorage.setItem(`todo_${inputs.id}`, '{}');
+        localStorage.setItem(`todo_${inputs.id}`, '');
 
         history.push('/login');
     }

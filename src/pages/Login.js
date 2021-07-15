@@ -10,13 +10,25 @@ import DialogActions from "@material-ui/core/DialogActions";
 import Dialog from "@material-ui/core/Dialog";
 import {useHistory} from "react-router-dom";
 import Slide from "@material-ui/core/Slide";
+import {makeStyles} from '@material-ui/core/styles';
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
+const useStyles = makeStyles((theme) => ({
+    btnContainer: {
+        '& > *': {
+            margin: theme.spacing(1),
+        },
+    },
+}));
+
+
 const Login = () => {
     const history = useHistory();
+    const classes = useStyles();
 
     const [loginAlertDatas, setOpenLoginAlert] = React.useState({
         open: false,
@@ -70,6 +82,10 @@ const Login = () => {
         }
     }
 
+    function handleSignupClick() {
+        history.push('/signup');
+    }
+
     return (
         <div>
             <Container maxWidth={"sm"} className="text-center">
@@ -82,7 +98,11 @@ const Login = () => {
                                value={pw}></TextField>
                 </form>
                 <br></br>
-                <Button variant={"contained"} color={"primary"} onClick={handleLoginClick}>Login</Button>
+
+                <div className={classes.btnContainer}>
+                    <Button variant={"contained"} color={"primary"} onClick={handleLoginClick}>Login</Button>
+                    <Button variant={"outlined"} color={"primary"} onClick={handleSignupClick}>SignUp</Button>
+                </div>
             </Container>
 
             <Dialog
