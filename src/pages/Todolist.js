@@ -23,7 +23,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
@@ -57,6 +56,8 @@ function Todolist() {
 
     const {addMsg} = inputs;
 
+    const [editSerial, setEditSerial] = useState();
+
     const onChangeTodolistInput = (e) => {
         const {name, value} = e.target;
 
@@ -82,6 +83,10 @@ function Todolist() {
 
     let [todoDatas, todoDatasChange] = useState(savedData);
 
+    function saveLocalstorage() {
+        localStorage.setItem(`todo_${currId}`, JSON.stringify(todoDatas));
+    }
+
     function handleAddBtn(_state) {
         setOpenAddAlert({
             open: true,
@@ -90,27 +95,86 @@ function Todolist() {
         });
     }
 
+    const convertDateToStr = (_date) => {
+        return `${_date.getFullYear()}.${_date.getMonth() + 1}.${_date.getDate()} ${_date.getHours()}:${_date.getMinutes()}`
+    }
+
     const handleCloseAddAlert = () => {
         // TODO : 유효성 검사
 
         const now = new Date();
+        const serial = todoDatas.length + 1;
 
         const addData = [
             ...todoDatas,
             {
+                serial: serial,
                 msg: inputs.addMsg,
-                date: `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}`,
+                date: convertDateToStr(now),
                 state: addAlertDatas.openState,
+                mode: "show"
             }
         ];
 
         todoDatasChange(addData);
-
-        localStorage.setItem(`todo_${currId}`, JSON.stringify(addData))
+        saveLocalstorage();
 
         setOpenAddAlert({
             open: false
         });
+    }
+
+    function handleDeleteBtn(_serial) {
+        const delDatas = todoDatas.filter(data => data.serial !== _serial);
+        todoDatasChange(delDatas);
+        saveLocalstorage();
+    }
+
+    function handleMsgClick(_serial) {
+        setEditSerial(_serial);
+
+        const datas = [...todoDatas];
+        datas.map(data => {
+            if (data.serial === _serial) {
+                data.mode = 'edit';
+            } else {
+                data.mode = 'show';
+            }
+        });
+
+        todoDatasChange(datas);
+    }
+
+    let mPressKeys = [];
+
+    function handleMsgEditKeyDown(e) {
+        mPressKeys.push(e.key);
+
+        if (mPressKeys[0] === 'Enter') {
+            handleMsgEdit(e.target.value);
+            e.preventDefault();
+        }
+    }
+
+    function handleMsgEditKeyUp(e) {
+        const index = mPressKeys.findIndex((sKey) => sKey === e.key);
+        mPressKeys = mPressKeys.slice(0, index);
+    }
+
+    function handleMsgEdit(_val) {
+        const now = new Date();
+
+        const datas = [...todoDatas]
+        datas.map(data => {
+            if (data.serial === editSerial) {
+                data.msg = _val;
+                data.mode = 'show';
+                data.date = convertDateToStr(now);
+            }
+        });
+
+        todoDatasChange(datas);
+        saveLocalstorage();
     }
 
     const classes = useStyles();
@@ -122,7 +186,12 @@ function Todolist() {
                         <h4 className={classes.paperTitle}>TODO</h4>
 
                         {todoDatas.filter(todo => todo.state === 'TODO').map((todoData, idx) => (
-                            <TodoListItem data={todoData}/>
+                            <TodoListItem
+                                data={todoData}
+                                handleDeleteBtn={handleDeleteBtn}
+                                handleMsgClick={handleMsgClick}
+                                handleMsgEditKeyDown={handleMsgEditKeyDown}
+                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
                         ))}
 
                         <div className={classes.containerAddBtn}>
@@ -135,7 +204,12 @@ function Todolist() {
                         <h4 className={classes.paperTitle}>DOING</h4>
 
                         {todoDatas.filter(todo => todo.state === 'DOING').map((todoData, idx) => (
-                            <TodoListItem data={todoData}/>
+                            <TodoListItem
+                                data={todoData}
+                                handleDeleteBtn={handleDeleteBtn}
+                                handleMsgClick={handleMsgClick}
+                                handleMsgEditKeyDown={handleMsgEditKeyDown}
+                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
                         ))}
 
                         <div className={classes.containerAddBtn}>
@@ -148,7 +222,12 @@ function Todolist() {
                         <h4 className={classes.paperTitle}>WAITING</h4>
 
                         {todoDatas.filter(todo => todo.state === 'WAITING').map((todoData, idx) => (
-                            <TodoListItem data={todoData}/>
+                            <TodoListItem
+                                data={todoData}
+                                handleDeleteBtn={handleDeleteBtn}
+                                handleMsgClick={handleMsgClick}
+                                handleMsgEditKeyDown={handleMsgEditKeyDown}
+                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
                         ))}
 
                         <div className={classes.containerAddBtn}>
@@ -161,7 +240,12 @@ function Todolist() {
                         <h4 className={classes.paperTitle}>DONE</h4>
 
                         {todoDatas.filter(todo => todo.state === 'DONE').map((todoData, idx) => (
-                            <TodoListItem data={todoData}/>
+                            <TodoListItem
+                                data={todoData}
+                                handleDeleteBtn={handleDeleteBtn}
+                                handleMsgClick={handleMsgClick}
+                                handleMsgEditKeyDown={handleMsgEditKeyDown}
+                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
                         ))}
 
                         <div className={classes.containerAddBtn}>
@@ -205,20 +289,47 @@ function TodoListItem(props) {
     return (
         <Card className={"mb-10"}>
             <CardContent>
-                <div className={"text-right"}>
-                    <IconButton aria-label="delete" size={"small"}>
-                        <Delete/>
-                    </IconButton>
-                </div>
-                <Typography variant="h5" component="h2">
+                <Grid container spacing={3}>
+                    <Grid item xs={12} sm={6}>
+                        <Typography variant={"caption"} color="textSecondary">
+                            {props.data.date}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <div className={"text-right"}>
+                            <IconButton aria-label="delete" size={"small"}
+                                        onClick={() => props.handleDeleteBtn(props.data.serial)}>
+                                <Delete/>
+                            </IconButton>
+                        </div>
+                    </Grid>
+                </Grid>
+
+                {props.data.mode === "show" &&
+                <Typography variant="h5" component="h2" onClick={() => props.handleMsgClick(props.data.serial)}>
                     {props.data.msg}
                 </Typography>
-                <Typography color="textSecondary" component="p" align={"right"}>
-                    {props.data.date}
-                </Typography>
+                }
+
+                {props.data.mode === "edit" &&
+                <TextField
+                    id="filled-required"
+                    label=""
+                    defaultValue={props.data.msg}
+                    variant="outlined"
+                    multiline
+                    onKeyDown={(e) => props.handleMsgEditKeyDown(e)}
+                    onKeyUp={(e) => props.handleMsgEditKeyUp(e)}
+                >
+                </TextField>
+                }
+
             </CardContent>
+
             <CardActions>
-                <Button variant="outlined" color="primary" size="small">Change state</Button>
+                <div className={"text-right"}>
+                    <Button variant="outlined" color="primary" size="small">state</Button>
+                </div>
             </CardActions>
         </Card>
     );
