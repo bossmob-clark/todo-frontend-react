@@ -3,7 +3,6 @@ import {makeStyles} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
@@ -18,6 +17,7 @@ import Slide from "@material-ui/core/Slide";
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import Delete from '@material-ui/icons/Delete';
+import {useUserState} from "../context";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -42,6 +42,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Todolist() {
+    const { user } = useUserState();
+
     const history = useHistory();
 
     const [addAlertDatas, setOpenAddAlert] = React.useState({
@@ -69,12 +71,11 @@ function Todolist() {
         setInputs(nextInputs)
     }
 
-    const currId = sessionStorage.getItem('currId');
-    if (!currId) {
+    if (!user || !user.userId) {
         history.push('/login');
     }
 
-    let savedData = localStorage.getItem(`todo_${currId}`);
+    let savedData = localStorage.getItem(`todo_${user.userId}`);
     if (savedData === undefined || savedData === null || savedData.length === 0) {
         savedData = [];
     } else {
@@ -83,8 +84,8 @@ function Todolist() {
 
     let [todoDatas, todoDatasChange] = useState(savedData);
 
-    function saveLocalstorage() {
-        localStorage.setItem(`todo_${currId}`, JSON.stringify(todoDatas));
+    function saveLocalstorage(_todoDatas) {
+        localStorage.setItem(`todo_${user.userId}`, JSON.stringify(_todoDatas));
     }
 
     function handleAddBtn(_state) {
@@ -100,24 +101,21 @@ function Todolist() {
     }
 
     const handleCloseAddAlert = () => {
-        // TODO : 유효성 검사
+        if (inputs.addMsg.length > 0) {
+            const now = new Date();
+            const serial = todoDatas.length + 1;
 
-        const now = new Date();
-        const serial = todoDatas.length + 1;
-
-        const addData = [
-            ...todoDatas,
-            {
+            const addData = [...todoDatas, {
                 serial: serial,
                 msg: inputs.addMsg,
                 date: convertDateToStr(now),
                 state: addAlertDatas.openState,
                 mode: "show"
-            }
-        ];
+            }];
 
-        todoDatasChange(addData);
-        saveLocalstorage();
+            todoDatasChange(addData);
+            saveLocalstorage(addData);
+        }
 
         setOpenAddAlert({
             open: false
@@ -127,7 +125,7 @@ function Todolist() {
     function handleDeleteBtn(_serial) {
         const delDatas = todoDatas.filter(data => data.serial !== _serial);
         todoDatasChange(delDatas);
-        saveLocalstorage();
+        saveLocalstorage(delDatas);
     }
 
     function handleMsgClick(_serial) {
@@ -164,8 +162,8 @@ function Todolist() {
     function handleMsgEdit(_val) {
         const now = new Date();
 
-        const datas = [...todoDatas]
-        datas.map(data => {
+        const editDatas = [...todoDatas];
+        editDatas.map(data => {
             if (data.serial === editSerial) {
                 data.msg = _val;
                 data.mode = 'show';
@@ -173,8 +171,8 @@ function Todolist() {
             }
         });
 
-        todoDatasChange(datas);
-        saveLocalstorage();
+        todoDatasChange(editDatas);
+        saveLocalstorage(editDatas);
     }
 
     const classes = useStyles();
@@ -325,12 +323,6 @@ function TodoListItem(props) {
                 }
 
             </CardContent>
-
-            <CardActions>
-                <div className={"text-right"}>
-                    <Button variant="outlined" color="primary" size="small">state</Button>
-                </div>
-            </CardActions>
         </Card>
     );
 }

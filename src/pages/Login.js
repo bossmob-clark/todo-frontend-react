@@ -11,6 +11,8 @@ import Dialog from "@material-ui/core/Dialog";
 import {useHistory} from "react-router-dom";
 import Slide from "@material-ui/core/Slide";
 import {makeStyles} from '@material-ui/core/styles';
+import {LOGIN} from "../context/actionTypes";
+import {useUserDispatch, useUserState} from "../context";
 
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -29,6 +31,8 @@ const useStyles = makeStyles((theme) => ({
 const Login = () => {
     const history = useHistory();
     const classes = useStyles();
+    const dispatch = useUserDispatch();
+    const { userList } = useUserState();
 
     const [loginAlertDatas, setOpenLoginAlert] = React.useState({
         open: false,
@@ -61,10 +65,36 @@ const Login = () => {
     }
 
     function handleLoginClick() {
-        if (localStorage.getItem(inputs.id)) {
-            const pw = localStorage.getItem(inputs.id);
-            if (pw === inputs.pw) {
-                sessionStorage.setItem('currId', inputs.id);
+        console.log("userList");
+        console.log(userList);
+
+        if (inputs.id.length === 0) {
+            setOpenLoginAlert({
+                open: true,
+                title: '로그인 실패',
+                msg: 'ID를 입력해주세요.'
+            });
+            return;
+        }
+
+        if (inputs.pw.length === 0) {
+            setOpenLoginAlert({
+                open: true,
+                title: '로그인 실패',
+                msg: '비밀번호를 입력해주세요.'
+            });
+            return;
+        }
+
+        const matchUsers = userList.filter(user => user.id === inputs.id);
+        console.log("matchUsers");
+        console.log(matchUsers);
+        if (matchUsers.length > 0) {
+            if (matchUsers[0].pw === inputs.pw) {
+                dispatch({
+                    type: LOGIN,
+                    userId: inputs.id,
+                });
                 history.push('/todolist');
             } else {
                 setOpenLoginAlert({
