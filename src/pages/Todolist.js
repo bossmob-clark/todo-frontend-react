@@ -179,78 +179,42 @@ function Todolist() {
     return (
         <div className={classes.root}>
             <Grid container spacing={3}>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>TODO</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'TODO').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('TODO')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>DOING</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'DOING').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('DOING')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>WAITING</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'WAITING').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('WAITING')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>DONE</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'DONE').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('DONE')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
+                <DrawTodoList
+                    state={'TODO'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
+                <DrawTodoList
+                    state={'DOING'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
+                <DrawTodoList
+                    state={'WAITING'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
+                <DrawTodoList
+                    state={'DONE'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
             </Grid>
 
             <Dialog
@@ -280,6 +244,31 @@ function Todolist() {
                 </DialogActions>
             </Dialog>
         </div>
+    );
+}
+
+function DrawTodoList(props) {
+    const classes = useStyles();
+
+    return (
+        <Grid item xs>
+            <Paper variant={'outlined'} className={classes.paper}>
+                <h4 className={classes.paperTitle}>{props.state}</h4>
+
+                {props.datas.filter(todo => todo.state === props.state).map((todoData, idx) => (
+                    <TodoListItem
+                        data={todoData}
+                        handleDeleteBtn={props.handleDeleteBtn}
+                        handleMsgClick={props.handleMsgClick}
+                        handleMsgEditKeyDown={props.handleMsgEditKeyDown}
+                        handleMsgEditKeyUp={props.handleMsgEditKeyUp}/>
+                ))}
+
+                <div className={classes.containerAddBtn}>
+                    <Button color={"primary"} onClick={() => props.handleAddBtn(props.state)}>Add</Button>
+                </div>
+            </Paper>
+        </Grid>
     );
 }
 
