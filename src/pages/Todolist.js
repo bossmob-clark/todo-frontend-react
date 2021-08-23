@@ -3,7 +3,6 @@ import {makeStyles} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
@@ -18,6 +17,7 @@ import Slide from "@material-ui/core/Slide";
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import Delete from '@material-ui/icons/Delete';
+import {useUserState} from "../context";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -42,6 +42,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Todolist() {
+    const { user } = useUserState();
+
     const history = useHistory();
 
     const [addAlertDatas, setOpenAddAlert] = React.useState({
@@ -69,12 +71,11 @@ function Todolist() {
         setInputs(nextInputs)
     }
 
-    const currId = sessionStorage.getItem('currId');
-    if (!currId) {
+    if (!user || !user.userId) {
         history.push('/login');
     }
 
-    let savedData = localStorage.getItem(`todo_${currId}`);
+    let savedData = localStorage.getItem(`todo_${user.userId}`);
     if (savedData === undefined || savedData === null || savedData.length === 0) {
         savedData = [];
     } else {
@@ -83,8 +84,8 @@ function Todolist() {
 
     let [todoDatas, todoDatasChange] = useState(savedData);
 
-    function saveLocalstorage() {
-        localStorage.setItem(`todo_${currId}`, JSON.stringify(todoDatas));
+    function saveLocalstorage(_todoDatas) {
+        localStorage.setItem(`todo_${user.userId}`, JSON.stringify(_todoDatas));
     }
 
     function handleAddBtn(_state) {
@@ -100,24 +101,21 @@ function Todolist() {
     }
 
     const handleCloseAddAlert = () => {
-        // TODO : 유효성 검사
+        if (inputs.addMsg.length > 0) {
+            const now = new Date();
+            const serial = todoDatas.length + 1;
 
-        const now = new Date();
-        const serial = todoDatas.length + 1;
-
-        const addData = [
-            ...todoDatas,
-            {
+            const addData = [...todoDatas, {
                 serial: serial,
                 msg: inputs.addMsg,
                 date: convertDateToStr(now),
                 state: addAlertDatas.openState,
                 mode: "show"
-            }
-        ];
+            }];
 
-        todoDatasChange(addData);
-        saveLocalstorage();
+            todoDatasChange(addData);
+            saveLocalstorage(addData);
+        }
 
         setOpenAddAlert({
             open: false
@@ -127,7 +125,7 @@ function Todolist() {
     function handleDeleteBtn(_serial) {
         const delDatas = todoDatas.filter(data => data.serial !== _serial);
         todoDatasChange(delDatas);
-        saveLocalstorage();
+        saveLocalstorage(delDatas);
     }
 
     function handleMsgClick(_serial) {
@@ -164,8 +162,8 @@ function Todolist() {
     function handleMsgEdit(_val) {
         const now = new Date();
 
-        const datas = [...todoDatas]
-        datas.map(data => {
+        const editDatas = [...todoDatas];
+        editDatas.map(data => {
             if (data.serial === editSerial) {
                 data.msg = _val;
                 data.mode = 'show';
@@ -173,86 +171,50 @@ function Todolist() {
             }
         });
 
-        todoDatasChange(datas);
-        saveLocalstorage();
+        todoDatasChange(editDatas);
+        saveLocalstorage(editDatas);
     }
 
     const classes = useStyles();
     return (
         <div className={classes.root}>
             <Grid container spacing={3}>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>TODO</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'TODO').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('TODO')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>DOING</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'DOING').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('DOING')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>WAITING</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'WAITING').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('WAITING')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
-                <Grid item xs>
-                    <Paper variant={'outlined'} className={classes.paper}>
-                        <h4 className={classes.paperTitle}>DONE</h4>
-
-                        {todoDatas.filter(todo => todo.state === 'DONE').map((todoData, idx) => (
-                            <TodoListItem
-                                data={todoData}
-                                handleDeleteBtn={handleDeleteBtn}
-                                handleMsgClick={handleMsgClick}
-                                handleMsgEditKeyDown={handleMsgEditKeyDown}
-                                handleMsgEditKeyUp={handleMsgEditKeyUp}/>
-                        ))}
-
-                        <div className={classes.containerAddBtn}>
-                            <Button color={"primary"} onClick={() => handleAddBtn('DONE')}>Add</Button>
-                        </div>
-                    </Paper>
-                </Grid>
+                <DrawTodoList
+                    state={'TODO'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
+                <DrawTodoList
+                    state={'DOING'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
+                <DrawTodoList
+                    state={'WAITING'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
+                <DrawTodoList
+                    state={'DONE'}
+                    datas={todoDatas}
+                    handleDeleteBtn={handleDeleteBtn}
+                    handleMsgClick={handleMsgClick}
+                    handleMsgEditKeyDown={handleMsgEditKeyDown}
+                    handleMsgEditKeyUp={handleMsgEditKeyUp}
+                    handleAddBtn={handleAddBtn}
+                />
             </Grid>
 
             <Dialog
@@ -282,6 +244,31 @@ function Todolist() {
                 </DialogActions>
             </Dialog>
         </div>
+    );
+}
+
+function DrawTodoList(props) {
+    const classes = useStyles();
+
+    return (
+        <Grid item xs>
+            <Paper variant={'outlined'} className={classes.paper}>
+                <h4 className={classes.paperTitle}>{props.state}</h4>
+
+                {props.datas.filter(todo => todo.state === props.state).map((todoData, idx) => (
+                    <TodoListItem
+                        data={todoData}
+                        handleDeleteBtn={props.handleDeleteBtn}
+                        handleMsgClick={props.handleMsgClick}
+                        handleMsgEditKeyDown={props.handleMsgEditKeyDown}
+                        handleMsgEditKeyUp={props.handleMsgEditKeyUp}/>
+                ))}
+
+                <div className={classes.containerAddBtn}>
+                    <Button color={"primary"} onClick={() => props.handleAddBtn(props.state)}>Add</Button>
+                </div>
+            </Paper>
+        </Grid>
     );
 }
 
@@ -325,12 +312,6 @@ function TodoListItem(props) {
                 }
 
             </CardContent>
-
-            <CardActions>
-                <div className={"text-right"}>
-                    <Button variant="outlined" color="primary" size="small">state</Button>
-                </div>
-            </CardActions>
         </Card>
     );
 }

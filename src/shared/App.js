@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { Route } from 'react-router-dom';
+import React, {Component} from 'react';
+import {Route} from 'react-router-dom';
 import {Home, Login, Signup, Todolist} from "../pages";
 
 class App extends Component {

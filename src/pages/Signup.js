@@ -9,6 +9,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
+import {useUserDispatch, useUserState} from "../context";
+import {CREATE_USER} from "../context/actionTypes";
 
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -16,6 +18,9 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 const Signup = () => {
+    const dispatch = useUserDispatch();
+    const {userList} = useUserState();
+
     const history = useHistory();
 
     const [signupAlertDatas, setOpenSignupAlert] = React.useState({
@@ -50,6 +55,30 @@ const Signup = () => {
     }
 
     function handleSignupClick() {
+        if (inputs.id.length === 0) {
+            setOpenSignupAlert({
+                open: true,
+                msg: 'ID를 입력해주세요.'
+            });
+            return;
+        }
+
+        if (inputs.pw.length === 0) {
+            setOpenSignupAlert({
+                open: true,
+                msg: '비밀번호를 입력해주세요.'
+            });
+            return;
+        }
+
+        if (inputs.pwConfirm.length === 0) {
+            setOpenSignupAlert({
+                open: true,
+                msg: '비밀번호 확인을 입력해주세요.'
+            });
+            return;
+        }
+
         if (inputs.pw !== inputs.pwConfirm) {
             setOpenSignupAlert({
                 open: true,
@@ -58,7 +87,7 @@ const Signup = () => {
             return;
         }
 
-        if (localStorage.getItem(inputs.id)) {
+        if (userList.filter(user => user.id === inputs.id).length > 0) {
             setOpenSignupAlert({
                 open: true,
                 msg: '이미 존재하는 id입니다.'
@@ -66,7 +95,14 @@ const Signup = () => {
             return;
         }
 
-        localStorage.setItem(inputs.id, inputs.pw);
+        dispatch({
+            type: CREATE_USER,
+            user: {
+                id: inputs.id,
+                pw: inputs.pw,
+            },
+        });
+
         localStorage.setItem(`todo_${inputs.id}`, '');
 
         history.push('/login');
