@@ -9,8 +9,9 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
-import {useUserDispatch, useUserState} from "../context";
-import {CREATE_USER} from "../context/actionTypes";
+import {AddUser} from "../redux/user/user.actions";
+import {useDispatch, useSelector} from "react-redux";
+import {CreateTodo} from "../redux/todo/todo.actions";
 
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -18,9 +19,8 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 const Signup = () => {
-    const dispatch = useUserDispatch();
-    const {userList} = useUserState();
-
+    const dispatch = useDispatch();
+    const users = useSelector(state => state.userDatas.users);
     const history = useHistory();
 
     const [signupAlertDatas, setOpenSignupAlert] = React.useState({
@@ -87,7 +87,7 @@ const Signup = () => {
             return;
         }
 
-        if (userList.filter(user => user.id === inputs.id).length > 0) {
+        if (users && users.filter(user => user.id === inputs.id).length > 0) {
             setOpenSignupAlert({
                 open: true,
                 msg: '이미 존재하는 id입니다.'
@@ -95,15 +95,8 @@ const Signup = () => {
             return;
         }
 
-        dispatch({
-            type: CREATE_USER,
-            user: {
-                id: inputs.id,
-                pw: inputs.pw,
-            },
-        });
-
-        localStorage.setItem(`todo_${inputs.id}`, '');
+        dispatch(AddUser({id: inputs.id, pw: inputs.pw,}));
+        dispatch(CreateTodo(inputs.id));
 
         history.push('/login');
     }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from "react";
+import React, {createContext, useContext, useReducer} from "react";
 import {CREATE_USER, LOGIN, LOGOUT} from "./actionTypes";
 
 const initialState = {

@@ -17,7 +17,8 @@ import Slide from "@material-ui/core/Slide";
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import Delete from '@material-ui/icons/Delete';
-import {useUserState} from "../context";
+import {useDispatch, useSelector} from "react-redux";
+import {SaveTodo} from "../redux/todo/todo.actions";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -42,7 +43,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Todolist() {
-    const { user } = useUserState();
+    const dispatch = useDispatch();
+    const currUserId = useSelector(state => state.userDatas.currUserId);
+    let savedData = useSelector(state => state.todoList[currUserId]);
 
     const history = useHistory();
 
@@ -71,21 +74,14 @@ function Todolist() {
         setInputs(nextInputs)
     }
 
-    if (!user || !user.userId) {
+    if (!currUserId) {
         history.push('/login');
-    }
-
-    let savedData = localStorage.getItem(`todo_${user.userId}`);
-    if (savedData === undefined || savedData === null || savedData.length === 0) {
-        savedData = [];
-    } else {
-        savedData = JSON.parse(savedData);
     }
 
     let [todoDatas, todoDatasChange] = useState(savedData);
 
-    function saveLocalstorage(_todoDatas) {
-        localStorage.setItem(`todo_${user.userId}`, JSON.stringify(_todoDatas));
+    function saveTodoDatas(_todoDatas) {
+        dispatch(SaveTodo(currUserId, _todoDatas));
     }
 
     function handleAddBtn(_state) {
@@ -114,7 +110,7 @@ function Todolist() {
             }];
 
             todoDatasChange(addData);
-            saveLocalstorage(addData);
+            saveTodoDatas(addData);
         }
 
         setOpenAddAlert({
@@ -125,7 +121,7 @@ function Todolist() {
     function handleDeleteBtn(_serial) {
         const delDatas = todoDatas.filter(data => data.serial !== _serial);
         todoDatasChange(delDatas);
-        saveLocalstorage(delDatas);
+        saveTodoDatas(delDatas);
     }
 
     function handleMsgClick(_serial) {
@@ -172,7 +168,7 @@ function Todolist() {
         });
 
         todoDatasChange(editDatas);
-        saveLocalstorage(editDatas);
+        saveTodoDatas(editDatas);
     }
 
     const classes = useStyles();
